@@ -1,0 +1,126 @@
+
+---
+title: "Cyclistic Bike Usage Analysis"
+author: "Md Shorup Ahmed"
+output:
+  html_document:
+    keep_md: true
+---
+
+## Introduction
+
+This report presents an analysis of Cyclistic bike usage patterns, focusing on differences between annual members and casual riders. The goal of this analysis is to understand how these two groups use the bikes differently, based on their trip data.
+
+### Project Goals:
+- Compare ride duration, frequency, and other patterns between annual members and casual riders.
+- Use data visualizations to communicate insights effectively.
+
+---
+
+## Data Import and Preprocessing
+
+We begin by loading the necessary libraries and importing the dataset.
+
+```{r setup, echo=TRUE}
+# Loading required libraries
+library(tidyverse)
+library(lubridate)
+
+# Load the dataset
+all_trips <- read.csv("path_to_your_data.csv")
+
+# Data overview
+str(all_trips)
+```
+
+---
+
+## Data Cleaning
+
+The dataset needs to be cleaned for the analysis.
+
+```{r data-cleaning, echo=TRUE}
+# Converting columns to appropriate types
+all_trips$started_at <- as.POSIXct(all_trips$started_at, format="%Y-%m-%d %H:%M:%S")
+
+# Create a new column for ride length in seconds
+all_trips$ride_length <- as.numeric(difftime(all_trips$ended_at, all_trips$started_at, units = "secs"))
+
+# Removing rows with negative ride length or any other outliers
+all_trips <- all_trips %>%
+  filter(ride_length > 0)
+
+# Summary of cleaned data
+summary(all_trips)
+```
+
+---
+
+## Exploring Ride Duration by User Type
+
+Let's compare the average ride duration between annual members and casual riders.
+
+```{r average-ride-duration, echo=TRUE}
+# Calculating average ride duration by user type
+average_duration <- all_trips %>%
+  group_by(member_casual) %>%
+  summarise(average_duration = mean(ride_length))
+
+# Visualizing the data
+ggplot(average_duration, aes(x = member_casual, y = average_duration, fill = member_casual)) +
+  geom_col() +
+  labs(
+    title = "Average Ride Duration by User Type",
+    x = "User Type",
+    y = "Average Ride Duration (seconds)",
+    fill = "User Type"
+  ) +
+  scale_fill_manual(values = c("blue", "green")) +
+  theme_minimal()
+```
+
+---
+
+## Ride Duration by Weekday
+
+Let's explore how ride duration varies across weekdays for both groups.
+
+```{r weekday-ride-duration, echo=TRUE}
+# Adding a new column for weekdays
+all_trips$weekday <- wday(all_trips$started_at, label = TRUE)
+
+# Summarizing data by weekday and user type
+weekday_duration <- all_trips %>%
+  group_by(member_casual, weekday) %>%
+  summarise(average_duration = mean(ride_length))
+
+# Visualizing average ride duration by weekday
+ggplot(weekday_duration, aes(x = weekday, y = average_duration, fill = member_casual)) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "Average Ride Duration by Weekday and User Type",
+    x = "Weekday",
+    y = "Average Duration (seconds)",
+    fill = "User Type"
+  ) +
+  scale_fill_manual(values = c("blue", "green")) +
+  theme_minimal()
+```
+
+---
+
+## Conclusions
+
+Based on the analysis, the key findings are:
+
+- **Annual members** tend to have a lower average ride duration compared to **casual riders**.
+- Ride patterns differ significantly on **weekdays**, with both groups showing peak usage during weekdays.
+- **Casual riders** tend to use bikes for shorter rides, likely reflecting recreational use, while **annual members** may use bikes more frequently for commuting purposes.
+
+---
+
+## Recommendations
+
+- Cyclistic may want to consider providing additional incentives for casual riders to encourage longer rides or membership subscriptions.
+- Based on weekday usage, marketing campaigns targeting weekdays might be beneficial to increase engagement during workdays.
+
