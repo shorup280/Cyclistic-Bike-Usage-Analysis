@@ -25,9 +25,14 @@ We begin by loading the necessary libraries and importing the dataset.
 # Loading required libraries
 library(tidyverse)
 library(lubridate)
+library(readxl)
 
-# Load the dataset
-all_trips <- read.csv("path_to_your_data.csv")
+# Load the datasets
+Divvy_2019 <- read_excel("workingDataset/Divvy_2019.xlsx")
+Divvy_2020 <- read_excel("workingDataset/Divvy_2020.xlsx")
+
+# Combine the datasets (assuming they have the same structure)
+all_trips <- bind_rows(Divvy_2019, Divvy_2020)
 
 # Data overview
 str(all_trips)
